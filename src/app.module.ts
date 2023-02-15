@@ -1,10 +1,32 @@
+// import { Module } from '@nestjs/common'; 
+// import { TypeOrmModule } from '@nestjs/typeorm';
+// import { BoardsController } from './boards/boards.controller';
+// import { BoardsModule } from './boards/boards.module';
+// import { BoardsService } from './boards/boards.service';
+// import { BoardRepository } from './boards/board.repository';
+
+// import { typeORMConfig } from './configs/typeorm.config';
+
+// @Module({
+//   imports: [
+//     TypeOrmModule.forRoot(typeORMConfig),
+//     BoardsModule
+//   ],
+//   controllers: [BoardsController],
+//   providers: [BoardsService, BoardRepository],
+// })
+// export class AppModule {}
+
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+
+import { BoardsModule } from './boards/boards.module';
+import { typeORMConfig } from './configs/typeorm.config';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    TypeOrmModule.forRoot(typeORMConfig), //
+    BoardsModule,
+  ],
 })
 export class AppModule {}
