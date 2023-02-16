@@ -1,12 +1,18 @@
+import { AuthGuard } from '@nestjs/passport';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { BoardsService } from './boards.service';
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, UseGuards, NotFoundException, Param, ParseIntPipe, Patch, Post, UsePipes, ValidationPipe, Logger } from '@nestjs/common';
 import { BoardStatus } from './board-status.enum';
 import { BoardStatusValidationPipe } from './pipes/board-status-validation.pipe';
 import { Board } from './board.entity';
+import { GetUser } from 'src/auth/get-user.decorator';
+import { User } from 'src/auth/user.entity';
+ 
 
 @Controller('boards')
+@UseGuards(AuthGuard())
 export class BoardsController {
+  private logger = new Logger('BoardsController')
   constructor(private boardsService: BoardsService) {}
 
   // @Get('/')
@@ -17,8 +23,12 @@ export class BoardsController {
 
   @Post()
   @UsePipes(ValidationPipe)
-  createBoard(@Body() createBoardDto: CreateBoardDto): Promise<Board> {
-    return this.boardsService.createBoard(createBoardDto);
+  createBoard(
+    @Body() createBoardDto: CreateBoardDto,
+    @GetUser() user:User ): Promise<Board> {
+      this.logger.verbose(`User ${user.username} creating a new board.
+      Payload: ${JSON.stringify(createBoardDto)}`)
+    return this.boardsService.createBoard(createBoardDto, user);
   }
 
   // @Post()
@@ -28,9 +38,17 @@ export class BoardsController {
   // }
 
 
+  // @Get()
+  // getAllTask(): Promise<Board[]>{
+  //   return this.boardsService.getAllBoards();
+  // }
+
   @Get()
-  getAllTask(): Promise<Board[]>{
-    return this.boardsService.getAllBoards();
+  getAllBoard(
+      @GetUser() user: User
+  ): Promise<Board[]> {
+      this.logger.verbose(`User ${user.username} trying to get all boards`);
+      return this.boardsService.getAllBoards(user);
   }
 
   
@@ -44,16 +62,27 @@ export class BoardsController {
   //   return this.boardsService.getBoardById(id)
   // }
 
+
   @Delete('/:id')
-  deleteBoard(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    const result = this.boardsService.deleteBoard(id);
-
-    // if(result.affected === 0){
-    //   throw new NotFoundException(`Can't find Board with id ${id}`)
-    // }
-
-    return result;
+  deleteBoard(@Param('id', ParseIntPipe) 
+  id,
+  @GetUser() user:User
+  ): Promise<void> {
+      return this.boardsService.deleteBoard(id, user);
   }
+
+
+
+  // @Delete('/:id')
+  // deleteBoard(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  //   const result = this.boardsService.deleteBoard(id);
+
+  //   // if(result.affected === 0){
+  //   //   throw new NotFoundException(`Can't find Board with id ${id}`)
+  //   // }
+
+  //   return result;
+  // }
  
 
   // @Delete('/:id')
